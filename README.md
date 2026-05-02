@@ -98,7 +98,25 @@ upright/
 
 ---
 
-## 설치
+## 설치 및 실행
+
+### Windows
+
+`run.bat`을 더블클릭하거나 명령 프롬프트에서 실행하세요.
+
+```bat
+run.bat
+```
+
+- 처음 실행 시 `.venv` 가상환경 생성 및 패키지 설치가 자동으로 진행됩니다.
+- 백엔드(포트 8000)와 프론트엔드(포트 5500) 터미널 창이 각각 열립니다.
+- 실행 후 출력된 URL로 브라우저에서 접속하세요.
+
+> **사전 조건** [python.org](https://www.python.org)에서 Python 3.13 이상을 설치하고, 설치 시 **"Add Python to PATH"** 옵션을 체크하세요.
+
+---
+
+### macOS
 
 프로젝트 루트에서 가상환경 생성 후 의존성 설치:
 
@@ -107,13 +125,9 @@ python3 -m venv .venv
 ./.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
----
-
-## 실행
-
 터미널 2개가 필요합니다.
 
-### 1. 백엔드 실행
+#### 1. 백엔드 실행
 
 ```bash
 cd /path/to/upright/backend
@@ -127,14 +141,16 @@ curl http://127.0.0.1:8000/health
 # {"status":"ok"}
 ```
 
-### 2. 프론트엔드 실행
+#### 2. 프론트엔드 실행
 
 ```bash
 cd /path/to/upright/frontend
 python3 -m http.server 5500
 ```
 
-### 3. 브라우저 접속
+---
+
+### 브라우저 접속 (공통)
 
 | 페이지 | URL |
 |--------|-----|
