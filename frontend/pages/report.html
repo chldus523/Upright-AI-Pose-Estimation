@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upright AI 자세 리포트</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg class="brand-mark-svg" viewBox="0 0 64 64" role="img">
+              <defs>
+                <linearGradient id="brandMarkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7bf0cb"></stop>
+                  <stop offset="55%" stop-color="#26c39f"></stop>
+                  <stop offset="100%" stop-color="#0e7c66"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(255,255,255,0.08)"></rect>
+              <path d="M20 19v18c0 8 4.8 12 12 12s12-4 12-12V19" fill="none" stroke="url(#brandMarkGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M26 18h12" fill="none" stroke="#dffcf2" stroke-width="4" stroke-linecap="round"></path>
+              <circle cx="44" cy="20" r="4" fill="#dffcf2"></circle>
+            </svg>
+          </div>
+          <div class="brand-copy">
+            <h1>Upright AI</h1>
+            <p>실시간 자세 교정 모니터링</p>
+          </div>
+        </div>
+        <nav class="nav-links">
+          <a class="nav-link" href="dashboard.html">대시보드<span>실시간 자세 분석 화면</span></a>
+          <a class="nav-link active" href="report.html">리포트<span>점수 추이와 지표 분석</span></a>
+          <a class="nav-link" href="guide.html">가이드<span>올바른 자세 교정 안내</span></a>
+        </nav>
+        <div class="sidebar-summary-panel">
+          <div class="sidebar-summary-top">
+            <span class="sidebar-mini-label">최근 점수</span>
+            <strong id="sidebar-latest-score">--</strong>
+            <span id="sidebar-latest-status" class="sidebar-mini-copy">분석 대기</span>
+          </div>
+          <div class="sidebar-summary-divider"></div>
+          <div class="sidebar-summary-stats">
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">세션 수</span>
+              <strong id="sidebar-session-count">0</strong>
+            </div>
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">가이드<br>준비도</span>
+              <strong id="sidebar-guide-score">0점</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-note">
+        <p>시간대별 자세 점수와 상체 정렬 지표를 분석해 개선 추세를 확인할 수 있습니다.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="title-block">
+          <h2>자세 분석 리포트</h2>
+          <p>목 각도, 어깨 균형, 상체 기울기 변화를 시계열로 확인합니다.</p>
+        </div>
+        <div class="status-cluster">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>분석 구간: <strong>오늘</strong></span>
+          </div>
+        </div>
+      </header>
+
+      <section class="report-grid">
+        <div class="report-summary">
+          <div class="summary-card">
+            <span>최근 분석 결과</span>
+            <strong id="recent-score">--</strong>
+          </div>
+          <div class="summary-card">
+            <span>평균 점수</span>
+            <strong id="avg-score">--</strong>
+          </div>
+          <div class="summary-card">
+            <span>최저 점수</span>
+            <strong id="low-score">--</strong>
+          </div>
+          <div class="summary-card">
+            <span>최고 점수</span>
+            <strong id="high-score">--</strong>
+          </div>
+        </div>
+
+        <div class="card report-controls-card">
+          <div class="card-header">
+            <div>
+              <h3>분석 필터</h3>
+              <p>저장된 프론트엔드 세션 데이터를 기준으로 기간과 표시 지표를 전환할 수 있습니다.</p>
+            </div>
+            <div id="report-source-badge" class="badge good-bg">기본 데이터</div>
+          </div>
+          <div class="report-controls">
+            <div class="filter-group">
+              <span class="filter-label">기간</span>
+              <div class="toggle-group">
+                <button class="toggle-chip active report-range" data-range="today">오늘</button>
+                <button class="toggle-chip report-range" data-range="recent">최근 5회</button>
+                <button class="toggle-chip report-range" data-range="all">전체</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <span class="filter-label">그래프 표시</span>
+              <div class="toggle-group metric-toggle-group">
+                <button class="toggle-chip active metric-toggle" data-dataset="score">점수</button>
+                <button class="toggle-chip active metric-toggle" data-dataset="neck">목</button>
+                <button class="toggle-chip active metric-toggle" data-dataset="shoulder">어깨</button>
+                <button class="toggle-chip active metric-toggle" data-dataset="tilt">상체</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <div>
+              <h3>자세 추이 그래프</h3>
+              <p>종합 점수와 핵심 생체역학 지표를 함께 비교해 변화 흐름을 파악합니다.</p>
+            </div>
+            <div class="badge warning-bg">분석 차트 활성화</div>
+          </div>
+          <canvas id="postureChart"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>최근 세션 요약</h3>
+              <p>대시보드에서 저장된 최근 분석 결과를 카드형으로 빠르게 검토합니다.</p>
+            </div>
+          </div>
+          <div id="report-history-empty" class="empty-state">
+            <strong>저장된 세션이 없습니다</strong>
+            <span>대시보드에서 자세 분석을 실행하면 이 영역에 세션 카드가 생성됩니다.</span>
+          </div>
+          <div id="report-history-list" class="report-history-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

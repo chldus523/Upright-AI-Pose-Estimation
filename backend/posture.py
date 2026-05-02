@@ -25,12 +25,12 @@ from mediapipe_util import (
 VISIBILITY_THRESHOLD = 0.55
 SHOULDER_Y_LIFT_RATIO = 0.06
 SHOULDER_Y_LIFT_MIN_PX = 4
-NECK_NORMAL_THRESHOLD = 45.0
-NECK_WARNING_THRESHOLD = 35.0
-SHOULDER_NORMAL_THRESHOLD = 5.0
-SHOULDER_WARNING_THRESHOLD = 10.0
-TRUNK_NORMAL_THRESHOLD = 7.0
-TRUNK_WARNING_THRESHOLD = 15.0
+NECK_NORMAL_THRESHOLD = 48.0
+NECK_WARNING_THRESHOLD = 38.0
+SHOULDER_NORMAL_THRESHOLD = 4.0
+SHOULDER_WARNING_THRESHOLD = 7.0
+TRUNK_NORMAL_THRESHOLD = 5.5
+TRUNK_WARNING_THRESHOLD = 10.0
 HEAD_FORWARD_Z_WARNING_THRESHOLD = -0.02
 HEAD_FORWARD_Z_BAD_THRESHOLD = -0.05
 FORWARD_RATIO_WARNING_THRESHOLD = 0.05
@@ -39,9 +39,9 @@ SIDE_VIEW_SCORE_MARGIN = 1.5
 TRACKING_SCORE_STEP = 8
 TRACKING_SCORE_FHP_BONUS = 12
 TOTAL_SCORE_WEIGHTS = {"neck": 0.4, "shoulder": 0.3, "trunk": 0.3}
-PENALTY_STRENGTH = {"neck": 0.6, "shoulder": 0.8, "trunk": 0.8}
-SMOOTHING_ALPHA = 0.25
-ROLLING_WINDOW_SIZE = 12
+PENALTY_STRENGTH = {"neck": 0.9, "shoulder": 1.0, "trunk": 1.0}
+SMOOTHING_ALPHA = 0.55
+ROLLING_WINDOW_SIZE = 5
 _IMAGE_LANDMARKER_LOCK = threading.Lock()
 
 
@@ -106,6 +106,11 @@ class MetricSmoother:
             window = self._windows.setdefault(key, deque(maxlen=self.window_size))
             window.append(ema_value)
             return sum(window) / len(window)
+
+    def reset(self) -> None:
+        with self._lock:
+            self._ema.clear()
+            self._windows.clear()
 
 
 _METRIC_SMOOTHER = MetricSmoother()
@@ -286,32 +291,41 @@ def soften_penalty(score: int, strength: float) -> int:
     return clamp_score(100.0 - ((100.0 - score) * strength))
 
 
+def rebalance_high_end_score(score: int) -> int:
+    normalized = clamp_score(score)
+    if normalized <= 50:
+        return normalized
+    progress = (normalized - 50.0) / 50.0
+    boosted = 50.0 + (50.0 * math.pow(progress, 0.38))
+    return clamp_score(boosted)
+
+
 def score_cva(value: Optional[float]) -> int:
     if value is None:
-        return 85
+        return 70
     if value >= 55.0:
         return 100
     if value >= NECK_NORMAL_THRESHOLD:
         span = max(55.0 - NECK_NORMAL_THRESHOLD, 1e-6)
-        return clamp_score(90.0 + ((value - NECK_NORMAL_THRESHOLD) / span) * 10.0)
+        return clamp_score(84.0 + ((value - NECK_NORMAL_THRESHOLD) / span) * 16.0)
     if value >= NECK_WARNING_THRESHOLD:
         span = max(NECK_NORMAL_THRESHOLD - NECK_WARNING_THRESHOLD, 1e-6)
-        return clamp_score(72.0 + ((value - NECK_WARNING_THRESHOLD) / span) * 18.0)
-    return clamp_score(72.0 - ((NECK_WARNING_THRESHOLD - value) * 1.2))
+        return clamp_score(58.0 + ((value - NECK_WARNING_THRESHOLD) / span) * 26.0)
+    return clamp_score(54.0 - ((NECK_WARNING_THRESHOLD - value) * 2.4))
 
 
 def score_inverse_threshold(value: Optional[float], normal_threshold: float, warning_threshold: float, severe_step: float) -> int:
     if value is None:
-        return 85
+        return 70
     if value <= 0:
         return 100
     if value < normal_threshold:
         span = max(normal_threshold, 1e-6)
-        return clamp_score(100.0 - (value / span) * 12.0)
+        return clamp_score(100.0 - (value / span) * 20.0)
     if value <= warning_threshold:
         span = max(warning_threshold - normal_threshold, 1e-6)
-        return clamp_score(88.0 - ((value - normal_threshold) / span) * 23.0)
-    return clamp_score(65.0 - (value - warning_threshold) * severe_step)
+        return clamp_score(78.0 - ((value - normal_threshold) / span) * 34.0)
+    return clamp_score(44.0 - (value - warning_threshold) * severe_step)
 
 
 def classify_head_forward_z(value: Optional[float]) -> str:
@@ -370,13 +384,15 @@ def combine_statuses(*statuses: str) -> str:
 
 
 def classify_total_score(total_score: int) -> str:
-    if total_score >= 90:
-        return "Excellent"
-    if total_score >= 75:
+    if total_score >= 78:
         return "Good"
     if total_score >= 60:
         return "Warning"
     return "Critical"
+
+
+def reset_metric_smoothing() -> None:
+    _METRIC_SMOOTHER.reset()
 
 
 def build_feedback_message(
@@ -391,23 +407,23 @@ def build_feedback_message(
     feedback_parts = []
     if neck_status != "Good":
         if neck_status == "Warning":
-            feedback_parts.append("Head is slightly forward. Try pulling your chin back.")
+            feedback_parts.append("고개가 약간 앞으로 나와 있습니다. 턱을 살짝 당겨주세요.")
         else:
-            feedback_parts.append("Forward head posture detected. Pull your chin back and align your ear over your shoulder.")
+            feedback_parts.append("거북목 자세가 감지되었습니다. 턱을 당기고 귀가 어깨 바로 위에 오도록 정렬해주세요.")
     if shoulder_status != "Good":
         if shoulder_status == "Warning":
-            feedback_parts.append("Shoulder balance is slightly off. Relax and level both shoulders.")
+            feedback_parts.append("어깨 균형이 흔들리고 있습니다. 양쪽 어깨 힘을 빼고 좌우 높이를 맞춰주세요.")
         else:
-            feedback_parts.append("Shoulder imbalance detected. Adjust posture evenly.")
+            feedback_parts.append("어깨 불균형이 감지되었습니다. 어깨 자세를 균형 있게 조정해주세요.")
     if trunk_status != "Good":
         if trunk_status == "Warning":
-            feedback_parts.append("Upper body is starting to lean. Re-center your torso.")
+            feedback_parts.append("상체가 기울기 시작했습니다. 몸통 중심을 다시 세워주세요.")
         else:
-            feedback_parts.append("Upper body leaning forward. Straighten your spine.")
+            feedback_parts.append("상체가 앞으로 기울어져 있습니다. 등을 곧게 펴주세요.")
     if not feedback_parts and total_score < 95:
-        feedback_parts.append("Posture is mostly stable. Maintain a neutral head and shoulder position.")
+        feedback_parts.append("자세가 대체로 안정적입니다. 목과 어깨의 중립 자세를 유지하세요.")
     if not feedback_parts:
-        return "Posture is stable."
+        return "자세가 안정적입니다."
     return " ".join(feedback_parts[:3])
 
 
@@ -478,6 +494,7 @@ def build_api_result(metrics: PostureMetrics) -> dict:
     forward_ratio = round(float(metrics.forward_ratio or 0.0), 4)
 
     return {
+        "has_pose": True,
         "status": metrics.classification,
         "turtle_neck": bool(metrics.turtle_neck),
         "neck_angle_deg": neck_angle_deg,
@@ -486,6 +503,13 @@ def build_api_result(metrics: PostureMetrics) -> dict:
         "head_forward_z": head_forward_z,
         "forward_ratio": forward_ratio,
         "total_score": int(metrics.total_score),
+        "feedback_message": metrics.feedback_message,
+        "visibility_ok": bool(metrics.visibility_ok),
+        "forward_head_measurement_ok": bool(metrics.forward_head_measurement_ok),
+        "view_mode": metrics.view_mode,
+        "mode_confidence": round(float(metrics.mode_confidence or 0.0), 3),
+        "tracking_score": int(metrics.tracking_score),
+        "coordinates": extract_upper_body_coordinates(metrics),
     }
 
 
@@ -701,6 +725,7 @@ def compute_metrics(
             + trunk_score * TOTAL_SCORE_WEIGHTS["trunk"]
         )
     )
+    total_score = rebalance_high_end_score(total_score)
     if tracking_score < 55:
         total_score = min(total_score, 75)
     shoulder_status = classify_metric(shoulder_tilt_deg, SHOULDER_NORMAL_THRESHOLD, SHOULDER_WARNING_THRESHOLD, higher_is_better=False)
@@ -763,7 +788,8 @@ def analyze_posture(frame) -> dict:
     )
     if metrics is None:
         return {
-            "status": "Needs Correction",
+            "has_pose": False,
+            "status": "Warning",
             "turtle_neck": False,
             "neck_angle_deg": 0.0,
             "shoulder_tilt_deg": 0.0,
@@ -771,6 +797,13 @@ def analyze_posture(frame) -> dict:
             "head_forward_z": 0.0,
             "forward_ratio": 0.0,
             "total_score": 0,
+            "feedback_message": "상체가 화면 안에 충분히 보이도록 카메라 각도와 거리를 조정해주세요.",
+            "visibility_ok": False,
+            "forward_head_measurement_ok": False,
+            "view_mode": "unknown",
+            "mode_confidence": 0.0,
+            "tracking_score": 0,
+            "coordinates": {},
         }
     return build_api_result(metrics)
 

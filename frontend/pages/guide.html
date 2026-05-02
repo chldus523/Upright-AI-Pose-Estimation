@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upright AI 자세 가이드</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg class="brand-mark-svg" viewBox="0 0 64 64" role="img">
+              <defs>
+                <linearGradient id="brandMarkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7bf0cb"></stop>
+                  <stop offset="55%" stop-color="#26c39f"></stop>
+                  <stop offset="100%" stop-color="#0e7c66"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(255,255,255,0.08)"></rect>
+              <path d="M20 19v18c0 8 4.8 12 12 12s12-4 12-12V19" fill="none" stroke="url(#brandMarkGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M26 18h12" fill="none" stroke="#dffcf2" stroke-width="4" stroke-linecap="round"></path>
+              <circle cx="44" cy="20" r="4" fill="#dffcf2"></circle>
+            </svg>
+          </div>
+          <div class="brand-copy">
+            <h1>Upright AI</h1>
+            <p>실시간 자세 교정 모니터링</p>
+          </div>
+        </div>
+        <nav class="nav-links">
+          <a class="nav-link" href="dashboard.html">대시보드<span>실시간 자세 분석 화면</span></a>
+          <a class="nav-link" href="report.html">리포트<span>점수 추이와 지표 분석</span></a>
+          <a class="nav-link active" href="guide.html">가이드<span>올바른 자세 교정 안내</span></a>
+        </nav>
+        <div class="sidebar-summary-panel">
+          <div class="sidebar-summary-top">
+            <span class="sidebar-mini-label">최근 점수</span>
+            <strong id="sidebar-latest-score">--</strong>
+            <span id="sidebar-latest-status" class="sidebar-mini-copy">분석 대기</span>
+          </div>
+          <div class="sidebar-summary-divider"></div>
+          <div class="sidebar-summary-stats">
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">세션 수</span>
+              <strong id="sidebar-session-count">0</strong>
+            </div>
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">가이드<br>준비도</span>
+              <strong id="sidebar-guide-score">0점</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-note">
+        <p>모니터 높이, 어깨 정렬, 상체 중심을 기준으로 안정적인 자세를 유지하는 방법을 안내합니다.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="title-block">
+          <h2>자세 교정 가이드</h2>
+          <p>올바른 목 정렬과 어깨 균형, 상체 중심 유지 방법을 단계별로 확인하세요.</p>
+        </div>
+        <div class="status-cluster">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>가이드 모드: <strong>학습 안내</strong></span>
+          </div>
+        </div>
+      </header>
+
+      <section class="guide-grid">
+        <div class="card">
+          <div class="guide-rebuild">
+            <div class="guide-keyword-bar" aria-label="자세 교정 핵심 키워드">
+              <span class="guide-keyword-pill" title="턱을 살짝 당겨 귀와 어깨가 수직선에 오도록 맞추면 목 앞쪽 긴장이 줄어듭니다.">턱 당기기</span>
+              <span class="guide-keyword-pill" title="어깨에 힘을 빼고 아래로 내려 승모근 과긴장과 어깨 말림을 예방합니다.">어깨 내리기</span>
+              <span class="guide-keyword-pill" title="골반을 의자 중앙에 세우고 허리를 곧게 펴 상체 중심을 수직으로 유지합니다.">허리 곧게</span>
+              <span class="guide-keyword-pill" title="화면 상단이 눈높이에 오도록 모니터를 조정해 시선을 아래로 꺾지 않게 합니다.">모니터 높이 맞추기</span>
+            </div>
+
+            <div class="guide-media-row">
+              <div class="guide-main-image-card">
+                <div class="guide-panel-header">
+                  <div>
+                    <h3 class="section-title">자세 교정 이미지 가이드</h3>
+                    <p class="section-subtitle">비율이 유지된 원본 이미지를 기준으로 착석 자세를 확인하세요.</p>
+                  </div>
+                </div>
+                <div class="guide-image-grid">
+                  <div class="guide-image-item">
+                    <a
+                      class="guide-image-link"
+                      href="https://blog.teamelysium.kr/student_posture_imbalance2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        class="guide-main-image"
+                        src="https://blog.teamelysium.kr/cdn/articles/student_posture_imbalance2/11b6e226-16a8-80a1-841f-e37806e4a3e1.png"
+                        alt="바른 자세 가이드 이미지"
+                      >
+                    </a>
+                    <p class="guide-image-caption">척추와 관절의 자연스러운 정렬로<br>신체 균형을 유지하는 바른 자세</p>
+                  </div>
+                  <div class="guide-image-item">
+                    <a
+                      class="guide-image-link"
+                      href="https://blog.teamelysium.kr/student_posture_imbalance2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <img
+                        class="guide-main-image"
+                        src="https://blog.teamelysium.kr/cdn/articles/student_posture_imbalance2/111b6ae9-2142-4f24-8acc-157f6848a4f2.png"
+                        alt="올바른 앉기 방법 이미지"
+                      >
+                    </a>
+                    <p class="guide-image-caption">등받이에 밀착하고 발바닥을 바닥에 고정한<br>올바른 앉기 방법</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="guide-video-card">
+                <div class="guide-video-card-header">
+                  <div>
+                    <h3 class="section-title">유튜브 영상 가이드</h3>
+                    <p class="section-subtitle">한국어 자세 교정 스트레칭 영상을 바로 재생할 수 있습니다.</p>
+                  </div>
+                </div>
+                <div id="guide-video-panel" class="guide-video-panel guide-video-card-shell">
+                  <button id="guide-video-preview" class="guide-video-preview" type="button" aria-label="자세 교정 영상 재생">
+                    <img
+                      class="guide-video-thumbnail"
+                      src="https://img.youtube.com/vi/5fnEEzi_ev0/hqdefault.jpg"
+                      alt="자세 교정 스트레칭 한국어 영상 썸네일"
+                    >
+                    <span class="guide-video-shade"></span>
+                    <span class="guide-video-chip">한국어 유튜브 가이드</span>
+                    <span class="guide-play-button">▶</span>
+                    <span class="guide-video-caption">자세 교정 스트레칭 영상 재생</span>
+                  </button>
+                  <a
+                    class="guide-video-link"
+                    href="https://www.youtube.com/watch?v=5fnEEzi_ev0"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    유튜브에서 보기
+                  </a>
+                  <iframe
+                    id="guide-video-frame"
+                    class="guide-video-frame"
+                    src=""
+                    title="한국어 자세 스트레칭 YouTube 영상"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+
+            <div class="guide-description-card">
+              <h3 class="section-title">올바른 자세 방법</h3>
+              <ul class="guide-description-list">
+                <li>턱을 살짝 당겨 목 정렬 유지</li>
+                <li>어깨를 편안하게 내리고 긴장 완화</li>
+                <li>허리를 곧게 세우고 등받이에 밀착</li>
+                <li>모니터를 눈높이에 맞게 조정</li>
+              </ul>
+              <a
+                class="guide-source-link"
+                href="https://blog.teamelysium.kr/student_posture_imbalance2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                출처: 팀엘리시움 블로그 원문 보기
+              </a>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>학습 체크리스트</h3>
+              <p>교정 포인트를 체크하며 올바른 자세 습관 형성 여부를 빠르게 점검할 수 있습니다.</p>
+            </div>
+            <div id="guide-progress-badge" class="badge warning-bg">준비도 0점</div>
+          </div>
+          <div class="guide-progress-meter" aria-hidden="true">
+            <div id="guide-progress-fill" class="guide-progress-fill"></div>
+          </div>
+          <div class="checklist-grid">
+            <label class="check-item" data-guide-index="0" title="화면 상단이 눈높이에 위치하면 고개를 아래로 꺾지 않아 목 굴곡이 줄어듭니다."><input class="guide-check" type="checkbox"> 화면 상단이 눈높이에 맞는다</label>
+            <label class="check-item" data-guide-index="1" title="어깨 힘을 빼면 승모근 과긴장을 줄이고 거북목 패턴이 심해지는 것을 막습니다."><input class="guide-check" type="checkbox"> 어깨에 힘이 과도하게 들어가지 않는다</label>
+            <label class="check-item" data-guide-index="2" title="몸통이 한쪽으로 기울면 허리와 어깨 보상 움직임이 생겨 자세 점수가 낮아집니다."><input class="guide-check" type="checkbox"> 몸통이 한쪽으로 기울지 않는다</label>
+            <label class="check-item" data-guide-index="3" title="좋은 자세도 시간이 지나면 무너지므로 30분 주기 재점검이 습관 형성에 가장 효과적입니다."><input class="guide-check" type="checkbox"> 30분 단위로 자세를 다시 점검한다</label>
+          </div>
+          <div class="guide-insight-card">
+            <strong id="guide-insight-title">학습 준비도 안내</strong>
+            <p id="guide-insight-copy">체크한 항목 수에 따라 현재 자세 준비도를 바로 확인할 수 있습니다.</p>
+          </div>
+          <div class="guide-reminder-row">
+            <button id="guide-reminder-btn" class="btn btn-secondary" type="button">30분 후 다시 점검</button>
+            <span id="guide-reminder-status" class="guide-reminder-status">아직 설정된 리마인더가 없습니다.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="reminder-popup" class="reminder-popup" aria-hidden="true" role="alertdialog" aria-labelledby="reminder-popup-title">
+    <div class="reminder-popup-card">
+      <div class="reminder-popup-ring">
+        <span class="reminder-popup-icon" aria-hidden="true">⏰</span>
+      </div>
+      <h3 id="reminder-popup-title" class="reminder-popup-title">자세 점검 시간입니다</h3>
+      <p class="reminder-popup-body">30분이 지났습니다.<br>지금 자세를 다시 확인하고 교정해보세요.</p>
+      <button id="reminder-popup-close" class="btn btn-primary reminder-popup-btn" type="button">확인했습니다</button>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>

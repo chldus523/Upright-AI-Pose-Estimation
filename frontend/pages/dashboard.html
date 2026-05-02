@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upright AI 자세 교정 대시보드</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg class="brand-mark-svg" viewBox="0 0 64 64" role="img">
+              <defs>
+                <linearGradient id="brandMarkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7bf0cb"></stop>
+                  <stop offset="55%" stop-color="#26c39f"></stop>
+                  <stop offset="100%" stop-color="#0e7c66"></stop>
+                </linearGradient>
+              </defs>
+              <rect x="6" y="6" width="52" height="52" rx="18" fill="rgba(255,255,255,0.08)"></rect>
+              <path d="M20 19v18c0 8 4.8 12 12 12s12-4 12-12V19" fill="none" stroke="url(#brandMarkGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M26 18h12" fill="none" stroke="#dffcf2" stroke-width="4" stroke-linecap="round"></path>
+              <circle cx="44" cy="20" r="4" fill="#dffcf2"></circle>
+            </svg>
+          </div>
+          <div class="brand-copy">
+            <h1>Upright AI</h1>
+            <p>실시간 자세 교정 모니터링</p>
+          </div>
+        </div>
+        <nav class="nav-links">
+          <a class="nav-link active" href="dashboard.html">대시보드<span>실시간 자세 분석 화면</span></a>
+          <a class="nav-link" href="report.html">리포트<span>점수 추이와 지표 분석</span></a>
+          <a class="nav-link" href="guide.html">가이드<span>올바른 자세 교정 안내</span></a>
+        </nav>
+        <div class="sidebar-summary-panel">
+          <div class="sidebar-summary-top">
+            <span class="sidebar-mini-label">최근 점수</span>
+            <strong id="sidebar-latest-score">--</strong>
+            <span id="sidebar-latest-status" class="sidebar-mini-copy">분석 대기</span>
+          </div>
+          <div class="sidebar-summary-divider"></div>
+          <div class="sidebar-summary-stats">
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">세션 수</span>
+              <strong id="sidebar-session-count">0</strong>
+            </div>
+            <div class="sidebar-summary-stat">
+              <span class="sidebar-mini-label">가이드<br>준비도</span>
+              <strong id="sidebar-guide-score">0점</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-note">
+        <p>목, 어깨, 상체 정렬 상태를 한눈에 확인하고 즉시 교정할 수 있는 SaaS형 모니터링 화면입니다.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div id="connection-banner" class="connection-banner" style="display:none" role="alert">
+        <span class="connection-banner-icon">⚠</span>
+        <span id="connection-banner-text"></span>
+      </div>
+
+      <header class="topbar">
+        <div class="title-block">
+          <h2>AI 자세 교정 대시보드</h2>
+          <p>착석 자세의 안정성, 상체 정렬, 위험 수준을 실시간으로 확인합니다.</p>
+        </div>
+        <div class="status-cluster">
+          <div class="status-pill">
+            <span id="system-status-dot" class="status-dot"></span>
+            <span>시스템 상태: <strong id="system-status-text">양호</strong></span>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>세션 기록: <strong id="history-count">0건</strong></span>
+          </div>
+          <button id="refresh-btn" class="btn btn-secondary">상태 새로고침</button>
+        </div>
+      </header>
+
+      <section class="workspace-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3>실시간 웹캠 모니터링</h3>
+              <p>상체 추적 범위와 상태 오버레이를 통해 현재 자세를 즉시 확인할 수 있습니다.</p>
+            </div>
+            <div id="tracking-badge" class="badge good-bg">추적 안정</div>
+          </div>
+          <div class="webcam-stage">
+            <video id="webcam-preview" class="webcam-video" autoplay muted playsinline poster="../assets/images/posture-guide.svg"></video>
+            <div class="webcam-grid"></div>
+            <div class="tracking-sweep"></div>
+            <div class="overlay-banner">
+              <strong>실시간 세션 분석</strong>
+              <span id="overlay-caption">상체 랜드마크 추적이 활성화되었습니다</span>
+            </div>
+            <div class="overlay-hud">
+              <strong>현재 판정</strong>
+              <span id="stage-status">양호</span>
+              <strong class="overlay-gap">실시간 점수</strong>
+              <span id="stage-score">92</span>
+            </div>
+            <div class="overlay-target target-neck"></div>
+            <div class="overlay-target target-shoulder"></div>
+            <div class="scan-frame"></div>
+            <div class="camera-chip">웹캠 연결 대기 중</div>
+          </div>
+          <div class="webcam-actions">
+            <div class="btn-group">
+              <button id="analyze-btn" class="btn btn-primary">자세 교정 시작</button>
+              <button id="stop-analysis-btn" class="btn btn-secondary">자세 교정 종료</button>
+            </div>
+            <div class="capture-meta">
+              <span>최근 분석 시각</span>
+              <strong id="capture-time">--:--:--</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics-stack">
+          <div id="score-panel" class="score-panel status-good">
+            <div class="score-label">종합 자세 점수</div>
+            <div class="score-main-row">
+              <div>
+                <div id="score-value" class="score-value">92</div>
+                <div class="score-unit">/ 100점</div>
+              </div>
+              <div id="score-status-badge" class="score-status-badge good-bg">양호</div>
+            </div>
+            <div id="score-caption" class="score-caption">자세가 안정적입니다. 현재 상태를 유지하세요.</div>
+          </div>
+
+          <div id="metrics-grid" class="metric-grid"></div>
+
+          <div id="risk-status" class="risk-strip good">
+            <div class="risk-copy">
+              <strong class="risk-state">양호</strong>
+              <span>위험 신호가 낮습니다. 현재 정렬을 유지하세요.</span>
+            </div>
+            <div id="risk-badge" class="badge good-bg">위험도 낮음</div>
+          </div>
+        </div>
+
+        <div class="card feedback-card">
+          <div class="card-header">
+            <div>
+              <h3>실시간 교정 피드백</h3>
+              <p>현재 자세에 맞춰 바로 적용할 수 있는 교정 지침을 제공합니다.</p>
+            </div>
+            <div id="feedback-badge" class="badge good-bg">안정적인 자세</div>
+          </div>
+          <div class="feedback-layout">
+            <div class="feedback-panel">
+              <div id="feedback-title" class="section-title good-text">현재 자세가 안정적입니다</div>
+              <p id="feedback-copy">자세가 안정적입니다. 현재 상태를 유지하세요.</p>
+            </div>
+            <div id="coach-list" class="coach-list"></div>
+          </div>
+        </div>
+
+        <div class="card feedback-card">
+          <div class="card-header">
+            <div>
+              <h3>세션 히스토리 & 이벤트 로그</h3>
+              <p>최근 분석 결과와 상태 변화를 브라우저에 저장해 다음 방문에서도 확인할 수 있습니다.</p>
+            </div>
+            <div class="btn-group">
+              <button id="clear-history-btn" class="btn btn-secondary">히스토리 초기화</button>
+            </div>
+          </div>
+          <div class="history-layout">
+            <div class="history-panel">
+              <div class="section-title">최근 분석 기록</div>
+              <div id="history-empty" class="empty-state">
+                <strong>저장된 분석 기록이 없습니다</strong>
+                <span>자세 분석을 시작하면 최근 12개의 세션 결과가 자동 저장됩니다.</span>
+              </div>
+              <div id="history-list" class="history-list"></div>
+            </div>
+            <div class="history-panel">
+              <div class="section-title">실시간 이벤트 타임라인</div>
+              <div id="event-log" class="event-log"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="webcam-consent-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="webcam-consent-title">
+      <div class="modal-eyebrow">웹캠 활성화 안내</div>
+      <h3 id="webcam-consent-title">웹캠을 켜기 전에 확인해주세요</h3>
+      <p class="modal-copy">
+        자세 교정을 시작하면 브라우저에서 웹캠이 켜집니다. 주변 환경을 정리한 뒤 시작해주세요.
+      </p>
+      <p class="modal-copy">
+        얼굴과 몸 정보는 개인정보이므로 이 데모에서는 절대 저장하거나 수집하지 않습니다. 사용자의 브라우저에서만 웹캠 권한이 요청됩니다.
+      </p>
+      <p class="modal-note">허용 버튼을 누른 뒤 브라우저 권한 창에서도 카메라 접근을 승인해야 웹캠이 켜집니다.</p>
+      <div class="modal-actions">
+        <button id="webcam-cancel-btn" class="btn btn-secondary" type="button">취소</button>
+        <button id="webcam-allow-btn" class="btn btn-primary" type="button">허용하고 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stop-analysis-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="stop-analysis-title">
+      <div class="modal-eyebrow">자세 교정 종료 안내</div>
+      <h3 id="stop-analysis-title">실시간 자세 교정을 종료하시겠습니까?</h3>
+      <p class="modal-copy">
+        종료하면 웹캠 스트리밍과 실시간 자세 분석이 함께 중지됩니다. 이후에는 점수와 피드백이 더 이상 갱신되지 않습니다.
+      </p>
+      <p class="modal-copy">
+        작업을 마쳤거나 잠시 분석을 멈추려는 경우 종료를 진행하세요. 다시 시작할 때는 자세 교정 시작 버튼으로 동일한 흐름을 재개할 수 있습니다.
+      </p>
+      <p class="modal-note">종료를 선택하면 현재 브라우저에서만 웹캠이 꺼지며, 저장된 리포트 기록은 유지됩니다.</p>
+      <div class="modal-actions">
+        <button id="stop-analysis-cancel-btn" class="btn btn-secondary" type="button">계속 분석</button>
+        <button id="stop-analysis-confirm-btn" class="btn btn-primary" type="button">종료하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+  <audio id="alert-audio" preload="auto">
+    <source src="../assets/audio/alert.mp3" type="audio/mpeg">
+  </audio>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/main.js"></script>
+</body>
+</html>
