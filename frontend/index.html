@@ -21,7 +21,7 @@
         <a href="#how-it-works" class="nav-text-link">작동 방식</a>
         <a href="pages/guide.html" class="nav-text-link">가이드</a>
       </div>
-      <a class="btn btn-primary btn-sm" href="pages/dashboard.html?autostart=1">시작하기</a>
+      <a class="btn btn-primary btn-sm" href="pages/dashboard.html?autostart=1" aria-label="자세 추정을 시작하고 대시보드로 이동">시작하기</a>
     </div>
   </nav>
 
@@ -38,8 +38,7 @@
         </h1>
         <p>실시간 카메라 분석으로 자세를 감지하고, 상황별 교정 피드백과 시계열 리포트, 자세 가이드까지 하나의 플랫폼에서 확인하세요.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="pages/dashboard.html?autostart=1">대시보드 시작</a>
-          <a class="btn btn-secondary" href="pages/report.html">리포트 보기</a>
+          <a class="btn btn-primary" href="pages/dashboard.html?autostart=1" aria-label="자세 추정을 시작하고 대시보드로 이동">자세 추정 시작하기</a>
         </div>
         <div class="hero-trust">
           <span class="trust-dot"></span>
@@ -51,22 +50,24 @@
         </div>
       </div>
       <div class="hero-preview reveal-item reveal-delay-1">
-        <div class="browser-mockup">
-          <div class="browser-chrome">
-            <div class="browser-dots">
+        <div class="dashboard-preview-card">
+          <div class="dashboard-preview-topbar" aria-hidden="true">
+            <div class="dashboard-preview-dots">
               <span></span><span></span><span></span>
             </div>
-            <div class="browser-bar">upright-ai · 대시보드</div>
-            <div class="browser-badge">LIVE</div>
+            <div class="dashboard-preview-pill"></div>
+            <div class="dashboard-preview-pill dashboard-preview-pill-short"></div>
           </div>
-          <div class="browser-screen">
-            <iframe
-              src="pages/dashboard.html"
-              scrolling="no"
-              tabindex="-1"
-              title="Upright AI 대시보드 미리보기"
-              aria-hidden="true"
-            ></iframe>
+          <div class="dashboard-preview-viewport">
+            <div class="dashboard-preview-stage">
+              <iframe
+                class="hero-dashboard-frame"
+                src="pages/dashboard.html"
+                title="Upright AI dashboard preview"
+                loading="lazy"
+                scrolling="no"
+              ></iframe>
+            </div>
           </div>
         </div>
       </div>

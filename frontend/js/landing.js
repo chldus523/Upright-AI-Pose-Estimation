@@ -74,9 +74,38 @@
     });
   }
 
+  function bindDashboardPreviewScale() {
+    var stages = Array.prototype.slice.call(document.querySelectorAll(".dashboard-preview-stage"));
+    if (!stages.length) {
+      return;
+    }
+
+    var baseWidth = 1366;
+    var baseHeight = 860;
+
+    function syncPreviewScale() {
+      stages.forEach(function (stage) {
+        var bounds = stage.getBoundingClientRect();
+        if (!bounds.width || !bounds.height) {
+          return;
+        }
+
+        var scale = Math.min(bounds.width / baseWidth, bounds.height / baseHeight);
+        stage.style.setProperty("--dashboard-preview-width", String(baseWidth));
+        stage.style.setProperty("--dashboard-preview-height", String(baseHeight));
+        stage.style.setProperty("--dashboard-preview-scale", String(scale));
+      });
+    }
+
+    syncPreviewScale();
+    window.addEventListener("resize", syncPreviewScale, { passive: true });
+    window.addEventListener("load", syncPreviewScale);
+  }
+
   onReady(function () {
     bindScrolledNav();
     bindSmoothAnchors();
     bindRevealSections();
+    bindDashboardPreviewScale();
   });
 })();
