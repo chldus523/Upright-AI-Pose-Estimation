@@ -74,6 +74,8 @@ upright/
 │   ├── mediapipe_util.py   MediaPipe Pose Landmarker 초기화 및 추론
 │   ├── angle.py            목·어깨·상체 각도 계산 함수
 │   ├── main.py             OpenCV 단독 실행 진입점
+│   ├── model_assets/
+│   │   └── pose_landmarker_lite.task   백엔드가 직접 읽는 MediaPipe 모델 파일
 │   └── requirements.txt
 ├── frontend/
 │   ├── index.html
@@ -92,7 +94,7 @@ upright/
 │       ├── audio/alert.mp3
 │       └── video/posture_guide.mp4
 ├── model_assets/
-│   └── pose_landmarker_lite.task   MediaPipe 모델 파일
+│   └── pose_landmarker_lite.task   저장소 루트에 포함된 모델 원본 파일
 └── .venv/
 ```
 
@@ -100,53 +102,144 @@ upright/
 
 ## 설치 및 실행
 
+> **중요**
+> 현재 백엔드 코드는 `backend/model_assets/pose_landmarker_lite.task` 경로의 모델 파일을 읽습니다.
+> 팀원이 `pose_landmarker_lite.task` 누락 오류를 겪었다면, 실행 전에 아래 파일이 실제로 존재하는지 먼저 확인하세요.
+>
+> `backend/model_assets/pose_landmarker_lite.task`
+>
+> 저장소 루트의 `model_assets/pose_landmarker_lite.task`만 있고 `backend/model_assets/` 안이 비어 있으면, 루트 파일을 `backend/model_assets/`로 복사한 뒤 실행해야 합니다.
+
 ### Windows
 
-`run.bat`을 더블클릭하거나 명령 프롬프트에서 실행하세요.
+#### 1. 사전 준비
+
+1. [python.org](https://www.python.org)에서 Python 3.13 이상을 설치합니다.
+2. 설치 중 반드시 `Add Python to PATH` 옵션을 체크합니다.
+3. 저장소를 받은 뒤, 아래 파일이 있는지 먼저 확인합니다.
+
+```text
+backend/model_assets/pose_landmarker_lite.task
+```
+
+4. 위 파일이 없고 아래 파일만 있다면:
+
+```text
+model_assets/pose_landmarker_lite.task
+```
+
+루트의 모델 파일을 `backend/model_assets/` 폴더로 복사합니다.
+
+#### 2. 가장 쉬운 실행 방법
+
+프로젝트 루트에서 `run.bat`을 실행합니다.
+
+방법 A. 파일 탐색기에서 `run.bat` 더블클릭  
+방법 B. 명령 프롬프트에서 실행
 
 ```bat
+cd C:\path\to\upright
 run.bat
 ```
 
-- 처음 실행 시 `.venv` 가상환경 생성 및 패키지 설치가 자동으로 진행됩니다.
-- 백엔드(포트 8000)와 프론트엔드(포트 5500) 터미널 창이 각각 열립니다.
-- 실행 후 출력된 URL로 브라우저에서 접속하세요.
+#### 3. 실행되면 일어나는 일
 
-> **사전 조건** [python.org](https://www.python.org)에서 Python 3.13 이상을 설치하고, 설치 시 **"Add Python to PATH"** 옵션을 체크하세요.
+1. Python 설치 여부를 확인합니다.
+2. `.venv` 가 없으면 자동으로 가상환경을 생성합니다.
+3. `backend/requirements.txt` 기준으로 패키지를 설치합니다.
+4. 백엔드 서버를 `127.0.0.1:8000` 에서 실행합니다.
+5. 프론트엔드 서버를 `127.0.0.1:5500` 에서 실행합니다.
+
+#### 4. 정상 실행 확인
+
+`run.bat` 실행 후 두 개의 터미널 창이 열려야 합니다.
+
+- `Upright - Backend`
+- `Upright - Frontend`
+
+브라우저에서 아래 주소로 접속합니다.
+
+- 랜딩 페이지: `http://127.0.0.1:5500/`
+- 대시보드: `http://127.0.0.1:5500/pages/dashboard.html`
+
+백엔드 상태 확인:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+브라우저에 `{"status":"ok"}` 가 보이면 정상입니다.
 
 ---
 
 ### macOS
 
-프로젝트 루트에서 가상환경 생성 후 의존성 설치:
+#### 1. 사전 준비
+
+1. 터미널을 엽니다.
+2. 프로젝트 루트로 이동합니다.
+3. 아래 모델 파일이 있는지 먼저 확인합니다.
 
 ```bash
+cd /path/to/upright
+ls backend/model_assets/pose_landmarker_lite.task
+```
+
+4. 위 파일이 없고 루트 파일만 있다면 아래처럼 복사합니다.
+
+```bash
+mkdir -p backend/model_assets
+cp model_assets/pose_landmarker_lite.task backend/model_assets/pose_landmarker_lite.task
+```
+
+#### 2. 가상환경 생성 및 패키지 설치
+
+프로젝트 루트에서 아래 순서대로 실행합니다.
+
+```bash
+cd /path/to/upright
 python3 -m venv .venv
 ./.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
-터미널 2개가 필요합니다.
+#### 3. 백엔드 실행
 
-#### 1. 백엔드 실행
+터미널 1개를 열고 아래 명령을 실행합니다.
 
 ```bash
 cd /path/to/upright/backend
 ../.venv/bin/python -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
 ```
 
-헬스체크:
+정상 확인:
 
 ```bash
 curl http://127.0.0.1:8000/health
+```
+
+응답:
+
+```bash
 # {"status":"ok"}
 ```
 
-#### 2. 프론트엔드 실행
+#### 4. 프론트엔드 실행
+
+터미널 2개째를 열고 아래 명령을 실행합니다.
 
 ```bash
 cd /path/to/upright/frontend
-python3 -m http.server 5500
+../.venv/bin/python -m http.server 5500
 ```
+
+#### 5. 브라우저 접속
+
+아래 주소 중 하나로 접속합니다.
+
+- 랜딩: `http://127.0.0.1:5500/`
+- 대시보드: `http://127.0.0.1:5500/pages/dashboard.html`
+- 리포트: `http://127.0.0.1:5500/pages/report.html`
+- 가이드: `http://127.0.0.1:5500/pages/guide.html`
 
 ---
 
@@ -221,6 +314,34 @@ curl http://127.0.0.1:8000/health
 # 응답 없으면 백엔드 재실행
 
 lsof -i :8000   # 포트 점유 확인
+```
+
+### `pose_landmarker_lite.task` 파일 누락 오류
+
+현재 코드 기준으로 필요한 파일 경로는 아래입니다.
+
+```text
+backend/model_assets/pose_landmarker_lite.task
+```
+
+다음 순서로 확인하세요.
+
+1. `backend/model_assets/` 폴더가 있는지 확인
+2. 그 안에 `pose_landmarker_lite.task` 파일이 있는지 확인
+3. 없으면 루트의 `model_assets/pose_landmarker_lite.task` 파일을 `backend/model_assets/`로 복사
+
+macOS:
+
+```bash
+mkdir -p backend/model_assets
+cp model_assets/pose_landmarker_lite.task backend/model_assets/pose_landmarker_lite.task
+```
+
+Windows:
+
+```bat
+mkdir backend\model_assets
+copy model_assets\pose_landmarker_lite.task backend\model_assets\pose_landmarker_lite.task
 ```
 
 ### 웹캠이 켜지지 않음
