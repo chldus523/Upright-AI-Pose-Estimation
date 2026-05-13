@@ -32,6 +32,33 @@
     guideReminder: "upright-ai-guide-reminder"
   };
   var guideReminderTimer = null;
+  var lastFrameDims = { w: 640, h: 480 };
+  var _ftHandler = null;
+  var _ftPrev = null;
+
+  var SKELETON_CONNECTIONS = [
+    ["left_ear",       "left_shoulder"],
+    ["right_ear",      "right_shoulder"],
+    ["left_shoulder",  "right_shoulder"],
+    ["left_shoulder",  "left_elbow"],
+    ["left_elbow",     "left_wrist"],
+    ["right_shoulder", "right_elbow"],
+    ["right_elbow",    "right_wrist"],
+    ["left_shoulder",  "left_hip"],
+    ["right_shoulder", "right_hip"],
+    ["left_hip",       "right_hip"]
+  ];
+
+  var SKELETON_KEY_JOINT_RADIUS = {
+    nose: 5, left_ear: 6, right_ear: 6,
+    left_shoulder: 7, right_shoulder: 7,
+    left_hip: 6, right_hip: 6
+  };
+
+  var SKELETON_SKIP_POINTS = {
+    face_center: true, chest_center: true, hip_center: true, mouth_center: true
+  };
+
   var GUIDE_CHECK_HINTS = [
     {
       title: "모니터 높이 정렬",
@@ -447,6 +474,31 @@
     $toast.data("timeoutId", timeoutId);
   }
 
+  function trapFocus(el) {
+    if (!el) return;
+    _ftPrev = document.activeElement;
+    var sel = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    var focusable = Array.prototype.slice.call(el.querySelectorAll(sel));
+    if (focusable.length) focusable[0].focus();
+    _ftHandler = function (e) {
+      if (e.key !== "Tab") return;
+      var first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    el.addEventListener("keydown", _ftHandler);
+  }
+
+  function releaseFocusTrap(el) {
+    if (_ftHandler && el) el.removeEventListener("keydown", _ftHandler);
+    _ftHandler = null;
+    if (_ftPrev && typeof _ftPrev.focus === "function") _ftPrev.focus();
+    _ftPrev = null;
+  }
+
   function setWebcamConsentModal(isVisible) {
     var $modal = $("#webcam-consent-modal");
     if (!$modal.length) {
@@ -454,6 +506,8 @@
     }
     $modal.toggleClass("show", isVisible).attr("aria-hidden", isVisible ? "false" : "true");
     $("body").css("overflow", isVisible ? "hidden" : "");
+    var inner = document.querySelector("#webcam-consent-modal .modal-card");
+    if (isVisible) trapFocus(inner); else releaseFocusTrap(inner);
   }
 
   function setStopAnalysisModal(isVisible) {
@@ -463,6 +517,8 @@
     }
     $modal.toggleClass("show", isVisible).attr("aria-hidden", isVisible ? "false" : "true");
     $("body").css("overflow", isVisible ? "hidden" : "");
+    var inner = document.querySelector("#stop-analysis-modal .modal-card");
+    if (isVisible) trapFocus(inner); else releaseFocusTrap(inner);
   }
 
   function setButtonLoading($button, isLoading, loadingText, defaultText) {
@@ -562,9 +618,61 @@
     return detailedFeedback ? detailedFeedback.split(". ").slice(0, 2).join(". ") : "위험 자세가 감지되었습니다. 자세를 즉시 다시 정렬해주세요.";
   }
 
-  function createMetricCard(title, value, suffix, hint) {
+  function updateScoreRing(score) {
+    var ringEl = document.getElementById("score-ring-fill");
+    if (!ringEl) return;
+    var circumference = 314.16;
+    var clamped = Math.min(100, Math.max(0, Number(score) || 0));
+    ringEl.style.strokeDashoffset = circumference * (1 - clamped / 100);
+    updateScoreFace(clamped);
+  }
+
+  function updateScoreFace(clamped) {
+    var eyesDot = document.getElementById("face-eyes-dot");
+    var eyesArc = document.getElementById("face-eyes-arc");
+    var brows   = document.getElementById("face-brows");
+    var mouth   = document.getElementById("face-mouth");
+    var cheeks  = document.getElementById("face-cheeks");
+    if (!mouth) return;
+    if (clamped >= 90) {
+      eyesDot && (eyesDot.style.display = "none");
+      eyesArc && (eyesArc.style.display = "");
+      brows   && (brows.style.display   = "none");
+      cheeks  && (cheeks.style.display  = "");
+      mouth.setAttribute("d", "M11 24 Q20 33 29 24");
+    } else if (clamped >= 80) {
+      eyesDot && (eyesDot.style.display = "");
+      eyesArc && (eyesArc.style.display = "none");
+      brows   && (brows.style.display   = "none");
+      cheeks  && (cheeks.style.display  = "none");
+      mouth.setAttribute("d", "M13 24 Q20 30 27 24");
+    } else if (clamped >= 65) {
+      eyesDot && (eyesDot.style.display = "");
+      eyesArc && (eyesArc.style.display = "none");
+      brows   && (brows.style.display   = "none");
+      cheeks  && (cheeks.style.display  = "none");
+      mouth.setAttribute("d", "M14 26 L26 26");
+    } else {
+      eyesDot && (eyesDot.style.display = "");
+      eyesArc && (eyesArc.style.display = "none");
+      brows   && (brows.style.display   = "");
+      cheeks  && (cheeks.style.display  = "none");
+      mouth.setAttribute("d", "M13 29 Q20 23 27 29");
+    }
+  }
+
+  function getMetricStatusClass(key, value) {
+    var v = parseFloat(value);
+    if (key === "neck") return v >= 45 ? "good" : v >= 40 ? "warning" : "critical";
+    if (key === "shoulder") return v <= 4 ? "good" : v <= 6.5 ? "warning" : "critical";
+    if (key === "body") return v <= 7 ? "good" : v <= 9 ? "warning" : "critical";
+    return "";
+  }
+
+  function createMetricCard(title, value, suffix, hint, statusKey) {
+    var sc = statusKey ? " metric-" + getMetricStatusClass(statusKey, value) : "";
     return [
-      '<div class="metric-card">',
+      '<div class="metric-card' + sc + '">',
       "<h4>" + title + "</h4>",
       "<strong>" + value + suffix + "</strong>",
       "<span>" + hint + "</span>",
@@ -606,10 +714,16 @@
       var eased = 1 - Math.pow(1 - progress, 3);
       var current = start + (range * eased);
       $(selector).text(formatNumber(current) + (suffix || ""));
+      if (selector === "#score-value") {
+        updateScoreRing(current);
+      }
       if (progress < 1) {
         window.requestAnimationFrame(step);
       } else {
         $(selector).text(formatNumber(end) + (suffix || ""));
+        if (selector === "#score-value") {
+          updateScoreRing(end);
+        }
       }
     }
 
@@ -688,6 +802,75 @@
     playAlert();
   }
 
+  function skeletonColor(status) {
+    if (status === "Good") return "#26c39f";
+    if (status === "Warning") return "#d7a000";
+    return "#d94343";
+  }
+
+  function coverTransform(fw, fh, cw, ch) {
+    var scale = (fw / fh > cw / ch) ? ch / fh : cw / fw;
+    return { scale: scale, dx: (cw - fw * scale) / 2, dy: (ch - fh * scale) / 2 };
+  }
+
+  function toCanvasPt(coord, t) {
+    return { x: coord[0] * t.scale + t.dx, y: coord[1] * t.scale + t.dy };
+  }
+
+  function drawSkeleton(coords, status, fw, fh) {
+    var canvas = document.getElementById("skeleton-canvas");
+    if (!canvas) return;
+    var rect = canvas.getBoundingClientRect();
+    canvas.width  = Math.round(rect.width);
+    canvas.height = Math.round(rect.height);
+    if (!coords || !Object.keys(coords).length) return;
+    var ctx = canvas.getContext("2d");
+    var t   = coverTransform(fw, fh, canvas.width, canvas.height);
+    var col = skeletonColor(status);
+
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = 2.5;
+    ctx.lineCap     = "round";
+    ctx.globalAlpha = 0.72;
+    ctx.shadowColor = col;
+    ctx.shadowBlur  = 8;
+    SKELETON_CONNECTIONS.forEach(function (pair) {
+      var a = coords[pair[0]], b = coords[pair[1]];
+      if (!a || !b) return;
+      var pa = toCanvasPt(a, t), pb = toCanvasPt(b, t);
+      ctx.beginPath();
+      ctx.moveTo(pa.x, pa.y);
+      ctx.lineTo(pb.x, pb.y);
+      ctx.stroke();
+    });
+
+    ctx.shadowBlur = 12;
+    Object.keys(coords).forEach(function (name) {
+      if (SKELETON_SKIP_POINTS[name]) return;
+      var coord = coords[name];
+      var pt = toCanvasPt(coord, t);
+      var r  = SKELETON_KEY_JOINT_RADIUS[name] || 3.5;
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, r, 0, 6.2832);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, r * 0.42, 0, 6.2832);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function clearSkeleton() {
+    var canvas = document.getElementById("skeleton-canvas");
+    if (!canvas) return;
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  }
+
   function setGuideMedia(mode) {
     var showVideo = mode === "video";
     var $imagePanel = $("#guide-image-panel");
@@ -740,8 +923,9 @@
       } else {
         $("#history-empty").hide();
         $("#history-list").html(sessions.map(function (session) {
+          var itemClass = "history-item " + (session.status ? statusClass(session.status) + "-item" : "");
           return [
-            '<div class="history-item">',
+            '<div class="' + itemClass + '">',
             '<div class="history-meta">',
             "<strong>" + localizedStatus(session.status) + " 상태</strong>",
             "<span>" + formatTime(session.timestamp) + " · 목 " + session.neck_angle + "° · 어깨 " + formatNumber(session.shoulder_tilt) + "°</span>",
@@ -813,6 +997,7 @@
 
   function stopWebcamSession() {
     console.log("[Session] 자세 교정 세션 종료");
+    clearSkeleton();
     stopLiveSimulation();
     closeAnalysisSocket();
     if (webcamStream && typeof webcamStream.getTracks === "function") {
@@ -833,7 +1018,7 @@
     $("#tracking-badge").removeClass("good-bg critical-bg").addClass("warning-bg").text("분석 종료");
     $(".camera-chip").text("웹캠 연결 종료");
     $("#capture-time").text("--:--:--");
-    $("#score-caption").text("실시간 분석이 종료되었습니다. 다시 시작하면 자세 점수와 교정 피드백이 갱신됩니다.");
+    $("#score-caption").text("실시간 분석이 종료되었습니다. 다시 시작하면 자세 점수와 교정 피드백이 갱신됩니다.").css("color", "#ffffff");
     $("#feedback-title").removeClass("good-text critical-text").addClass("warning-text").text("실시간 분석이 중지되었습니다");
     $("#feedback-copy").text("자세 교정 시작 버튼을 누르면 웹캠과 스트리밍 분석이 다시 활성화됩니다.");
     $("#feedback-badge").removeClass("good-bg critical-bg").addClass("warning-bg").text("분석 대기");
@@ -975,19 +1160,20 @@
 
     $("#stage-status").removeClass("good-text warning-text critical-text").addClass(textClass(currentStatus));
     $("#stage-score").removeClass("good-text warning-text critical-text").addClass(textClass(currentStatus));
-    $("#score-value").removeClass("good-text warning-text critical-text").addClass(textClass(currentStatus));
-    $("#score-caption").removeClass("good-text warning-text critical-text").addClass(textClass(currentStatus));
+    $("#score-value").removeClass("good-text warning-text critical-text").css("color", "");
+    $("#score-caption").removeClass("good-text warning-text critical-text").css("color", "#ffffff");
 
     animateNumber("#stage-score", Number($("#stage-score").text()) || 0, data.total_score, "");
     animateNumber("#score-value", lastScore, data.total_score, "");
     lastScore = data.total_score;
     $("#score-caption").text(summaryFeedback);
 
+    updateScoreRing(data.total_score);
     $("#metrics-grid").html(
-      createMetricCard("목 정렬 각도", data.neck_angle, "°", data.has_pose === false ? "카메라 각도와 거리를 먼저 맞춰주세요" : getMetricHint("neck", data.neck_angle)) +
-      createMetricCard("어깨 불균형", formatNumber(data.shoulder_tilt), "°", data.has_pose === false ? "상체가 프레임 안에 들어오면 측정을 시작합니다" : getMetricHint("shoulder", data.shoulder_tilt)) +
-      createMetricCard("상체 기울기", formatNumber(data.body_tilt), "°", data.has_pose === false ? "어깨와 상체가 모두 보이도록 조정해주세요" : getMetricHint("body", data.body_tilt)) +
-      createMetricCard("추적 상태", data.has_pose === false ? "조정 필요" : localized, "", data.has_pose === false ? "좌표 추출 전 단계입니다. 상체 위치를 먼저 맞춰주세요" : currentStatus === "Good" ? "안정적인 자세 흐름이 유지됩니다" : currentStatus === "Warning" ? "가벼운 자세 흔들림이 감지됩니다" : "지속 시 부담이 커질 수 있습니다")
+      createMetricCard("목 정렬 각도", data.neck_angle, "°", data.has_pose === false ? "카메라 각도와 거리를 먼저 맞춰주세요" : getMetricHint("neck", data.neck_angle), data.has_pose === false ? "" : "neck") +
+      createMetricCard("어깨 불균형", formatNumber(data.shoulder_tilt), "°", data.has_pose === false ? "상체가 프레임 안에 들어오면 측정을 시작합니다" : getMetricHint("shoulder", data.shoulder_tilt), data.has_pose === false ? "" : "shoulder") +
+      createMetricCard("상체 기울기", formatNumber(data.body_tilt), "°", data.has_pose === false ? "어깨와 상체가 모두 보이도록 조정해주세요" : getMetricHint("body", data.body_tilt), data.has_pose === false ? "" : "body") +
+      createMetricCard("추적 상태", data.has_pose === false ? "조정 필요" : localized, "", data.has_pose === false ? "좌표 추출 전 단계입니다. 상체 위치를 먼저 맞춰주세요" : currentStatus === "Good" ? "안정적인 자세 흐름이 유지됩니다" : currentStatus === "Warning" ? "가벼운 자세 흔들림이 감지됩니다" : "지속 시 부담이 커질 수 있습니다", "")
     );
     $("#coach-list").html(buildCoachItems(data, currentStatus));
     $("#capture-time").text(new Date().toLocaleTimeString("ko-KR"));
@@ -1031,6 +1217,9 @@
     }
 
     analysisInFlight = true;
+    var fw = video.videoWidth > 640 ? 640 : (video.videoWidth || 640);
+    var fh = video.videoWidth > 0 ? Math.round(video.videoHeight * (fw / video.videoWidth)) : 480;
+    lastFrameDims = { w: fw, h: fh };
     captureVideoFrameDataUrl(video, 640).then(function (image) {
       analysisSocket.send(JSON.stringify({ image: image }));
     }).catch(function () {
@@ -1121,6 +1310,11 @@
         onMessage: function (payload) {
           analysisInFlight = false;
           renderDashboard(payload);
+          if (payload.has_pose && payload.coordinates && Object.keys(payload.coordinates).length > 0) {
+            drawSkeleton(payload.coordinates, payload.status, lastFrameDims.w, lastFrameDims.h);
+          } else {
+            clearSkeleton();
+          }
           appendSessionArtifacts(payload, "실시간 스트리밍 분석");
           $("#overlay-caption").text(payload.has_pose === false ? "상체 위치를 조정하면 좌표 추출과 점수 계산이 시작됩니다" : "백엔드 자세 분석 결과가 실시간으로 갱신되고 있습니다");
         },
@@ -1786,6 +1980,7 @@
     }
     $popup.addClass("show").attr("aria-hidden", "false");
     $("body").css("overflow", "hidden");
+    trapFocus(document.querySelector("#reminder-popup .reminder-popup-card"));
   }
 
   function hideReminderPopup() {
@@ -1795,6 +1990,7 @@
     }
     $popup.removeClass("show").attr("aria-hidden", "true");
     $("body").css("overflow", "");
+    releaseFocusTrap(document.querySelector("#reminder-popup .reminder-popup-card"));
   }
 
   function requestNotificationPermission() {
@@ -1905,6 +2101,15 @@
     initDashboard();
     initReport();
     initGuide();
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      var wcModal = document.getElementById("webcam-consent-modal");
+      var saModal = document.getElementById("stop-analysis-modal");
+      var rpPopup = document.getElementById("reminder-popup");
+      if (wcModal && wcModal.classList.contains("show")) setWebcamConsentModal(false);
+      else if (saModal && saModal.classList.contains("show")) setStopAnalysisModal(false);
+      else if (rpPopup && rpPopup.classList.contains("show")) hideReminderPopup();
+    });
     window.addEventListener("beforeunload", function () {
       stopLiveSimulation();
       if (analysisSocket && analysisSocket.readyState === WebSocket.OPEN) {

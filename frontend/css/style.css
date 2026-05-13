@@ -585,6 +585,15 @@ video {
   pointer-events: none;
 }
 
+.skeleton-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .tracking-sweep,
 .overlay-banner,
 .overlay-hud,
@@ -821,8 +830,22 @@ video {
   background: linear-gradient(145deg, #6f5310 0%, #d7a000 100%);
 }
 
+.status-warning .score-value,
+.status-warning .score-label,
+.status-warning .score-unit,
+.status-warning .score-caption {
+  color: #ffffff !important;
+}
+
 .status-critical {
   background: linear-gradient(145deg, #6d1d1d 0%, #d94343 100%);
+}
+
+.status-critical .score-value,
+.status-critical .score-label,
+.status-critical .score-unit,
+.status-critical .score-caption {
+  color: #ffffff !important;
 }
 
 .score-label {
@@ -833,9 +856,10 @@ video {
 
 .score-main-row {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 22px;
+  margin-top: 10px;
 }
 
 .score-value {
@@ -2004,6 +2028,18 @@ video {
     font-size: 4.1rem;
   }
 
+  .score-ring-inner .score-value {
+    font-size: 2.2rem;
+  }
+
+  .score-main-row {
+    align-items: center;
+  }
+
+  .score-right {
+    align-items: flex-start;
+  }
+
   .score-caption {
     max-width: 100%;
   }
@@ -2144,6 +2180,240 @@ video {
 @keyframes reminder-ring-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(38, 195, 159, 0.28); }
   50%       { box-shadow: 0 0 0 12px rgba(38, 195, 159, 0); }
+}
+
+/* === Score Ring === */
+.score-ring-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.score-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.score-ring-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 7;
+}
+
+.score-ring-fill {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 314.16;
+  stroke-dashoffset: 25.13;
+  transition: stroke-dashoffset 0.65s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s ease;
+}
+
+.status-good .score-ring-fill { stroke: #7bf0cb; }
+.status-warning .score-ring-fill { stroke: #ffe08a; }
+.status-critical .score-ring-fill { stroke: #ff9e9e; }
+
+.score-ring-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === Score Face === */
+.score-face-svg {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+}
+
+.status-good     .score-face-svg { color: #7bf0cb; }
+.status-warning  .score-face-svg { color: #ffe08a; }
+.status-critical .score-face-svg { color: #ff9e9e; }
+
+/* Score number row in score-right */
+.score-number-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.score-number-row .score-value {
+  font-size: 2.6rem;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.score-number-row .score-unit {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.score-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.score-right .score-caption {
+  margin-top: 0;
+  max-width: none;
+  font-size: 0.92rem;
+}
+
+/* === Card Entrance Animations === */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topbar {
+  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.workspace-grid > *:nth-child(1) {
+  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+.workspace-grid > *:nth-child(2) {
+  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.workspace-grid > *:nth-child(3) {
+  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.workspace-grid > *:nth-child(4) {
+  animation: card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both;
+}
+
+/* === Metric Card Status Accents === */
+.metric-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--line);
+  transition: background 0.3s ease;
+}
+
+.metric-card.metric-good::before { background: var(--good); }
+.metric-card.metric-warning::before { background: var(--warning); }
+.metric-card.metric-critical::before { background: var(--critical); }
+
+.metric-card.metric-good strong { color: var(--good); }
+.metric-card.metric-warning strong { color: var(--warning); }
+.metric-card.metric-critical strong { color: var(--critical); }
+
+/* === History Item Status Colors === */
+.history-item.good-item {
+  border-left: 3px solid rgba(31, 157, 85, 0.45);
+}
+
+.history-item.warning-item {
+  border-left: 3px solid rgba(215, 160, 0, 0.45);
+}
+
+.history-item.critical-item {
+  border-left: 3px solid rgba(217, 67, 67, 0.45);
+}
+
+/* === Enhanced Active Nav Link === */
+.nav-link.active {
+  background: linear-gradient(135deg, rgba(38, 195, 159, 0.18), rgba(38, 195, 159, 0.06));
+  border-color: rgba(38, 195, 159, 0.42);
+  box-shadow: 0 4px 14px rgba(38, 195, 159, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* === Topbar Enhancement === */
+.topbar {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(216, 227, 226, 0.7), 0 8px 24px rgba(18, 58, 82, 0.06);
+}
+
+/* === Enhanced Btn Primary === */
+.btn-primary {
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  box-shadow: 0 8px 20px rgba(14, 124, 102, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  letter-spacing: 0.01em;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 12px 28px rgba(14, 124, 102, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+/* === Score Panel Gradient Orb === */
+.score-panel::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  bottom: -60px;
+  left: -40px;
+  pointer-events: none;
+}
+
+/* === Sidebar Brand Enhancement === */
+.brand-copy h1 {
+  letter-spacing: -0.02em;
+  font-size: 1.22rem;
+}
+
+/* === Card Border Glow on Hover === */
+.card:hover {
+  border-color: rgba(38, 195, 159, 0.18);
+}
+
+/* === Metric Card Polish === */
+.metric-card strong {
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+}
+
+/* === Event Timeline Dot Enhancement === */
+.event-item::before {
+  box-shadow: 0 0 0 4px rgba(14, 124, 102, 0.08), 0 0 0 8px rgba(14, 124, 102, 0.04);
+}
+
+/* === Empty State Polish === */
+.empty-state {
+  text-align: center;
+  padding: 28px 18px;
+}
+
+.empty-state strong {
+  font-size: 0.96rem;
+  color: var(--accent);
+}
+
+/* === Score Panel Background Fix (z-index) === */
+.score-panel {
+  z-index: 0;
 }
 
 /* jQuery UI Tooltip override */

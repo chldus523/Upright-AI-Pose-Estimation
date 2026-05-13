@@ -199,7 +199,7 @@ cp model_assets/pose_landmarker_lite.task backend/model_assets/pose_landmarker_l
 ```bash
 cd /path/to/upright
 python3 -m venv .venv
-./.venv/bin/python -m pip install -r backend/requirements.txt
+./.venv/bin/python -m pip install -r backend/requirements.txtcd
 ```
 
 #### 3. 백엔드 실행

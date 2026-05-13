@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upright AI 자세 교정 대시보드</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style.css?v=3">
 </head>
 <body>
   <div class="app-shell">
@@ -96,6 +96,7 @@
           <div class="webcam-stage">
             <video id="webcam-preview" class="webcam-video" autoplay muted playsinline poster="../assets/images/posture-guide.svg"></video>
             <div class="webcam-grid"></div>
+            <canvas id="skeleton-canvas" class="skeleton-canvas" aria-hidden="true"></canvas>
             <div class="tracking-sweep"></div>
             <div class="overlay-banner">
               <strong>실시간 세션 분석</strong>
@@ -128,13 +129,42 @@
           <div id="score-panel" class="score-panel status-good">
             <div class="score-label">종합 자세 점수</div>
             <div class="score-main-row">
-              <div>
-                <div id="score-value" class="score-value">92</div>
-                <div class="score-unit">/ 100점</div>
+              <div class="score-ring-wrap">
+                <svg class="score-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+                  <circle class="score-ring-track" cx="60" cy="60" r="50"/>
+                  <circle id="score-ring-fill" class="score-ring-fill" cx="60" cy="60" r="50"/>
+                </svg>
+                <div class="score-ring-inner">
+                  <svg id="score-face-svg" class="score-face-svg" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g id="face-eyes-dot">
+                      <circle cx="14" cy="17" r="2.2" fill="currentColor"/>
+                      <circle cx="26" cy="17" r="2.2" fill="currentColor"/>
+                    </g>
+                    <g id="face-eyes-arc" style="display:none">
+                      <path d="M11 17 Q13.5 14 16 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      <path d="M24 17 Q26.5 14 29 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <g id="face-brows" style="display:none">
+                      <path d="M10 13 L16 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                      <path d="M30 13 L24 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                    </g>
+                    <path id="face-mouth" d="M11 24 Q20 33 29 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <g id="face-cheeks">
+                      <ellipse cx="11.5" cy="26.5" rx="3" ry="2" fill="currentColor" opacity="0.22"/>
+                      <ellipse cx="28.5" cy="26.5" rx="3" ry="2" fill="currentColor" opacity="0.22"/>
+                    </g>
+                  </svg>
+                </div>
               </div>
-              <div id="score-status-badge" class="score-status-badge good-bg">양호</div>
+              <div class="score-right">
+                <div class="score-number-row">
+                  <div id="score-value" class="score-value">92</div>
+                  <div class="score-unit">/ 100</div>
+                </div>
+                <div id="score-status-badge" class="score-status-badge badge good-bg">양호</div>
+                <div id="score-caption" class="score-caption">자세가 안정적입니다. 현재 상태를 유지하세요.</div>
+              </div>
             </div>
-            <div id="score-caption" class="score-caption">자세가 안정적입니다. 현재 상태를 유지하세요.</div>
           </div>
 
           <div id="metrics-grid" class="metric-grid"></div>
@@ -235,7 +265,7 @@
     <source src="../assets/audio/alert.mp3" type="audio/mpeg">
   </audio>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/main.js"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/main.js?v=3"></script>
 </body>
 </html>
